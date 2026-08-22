@@ -5,9 +5,6 @@ from pydantic import BaseModel
 #fastapi app declearation
 app = FastAPI()
 
-class Job(BaseModel):
-    pass
-
 @app.get("/health")
 async def api_health_check():
     return {
