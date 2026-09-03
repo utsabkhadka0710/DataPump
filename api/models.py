@@ -48,8 +48,8 @@ class JobResponse(BaseModel):
     batch_size: int
     
     status: JobStatus = JobStatus.PENDING
-    processed_records:int = 0
-    total_records:int = 0
+    processed_records: int = 0
+    total_records: int = 0
     error_message: Optional[str] = None
     
     created_at: datetime = Field(default_factory=datetime.now)
