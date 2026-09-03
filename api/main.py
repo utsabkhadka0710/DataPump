@@ -33,7 +33,7 @@ class FakeDb():
         
         self.items.update(
             {
-                f"job {int(stored_job.id)}" : stored_job
+                f"job {str(stored_job.id)}" : stored_job
             }
         )
         
