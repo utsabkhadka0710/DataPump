@@ -13,7 +13,7 @@ class JobStatus(str, Enum):
     FAILED = "failed"
 
 class JobCreate(BaseModel):
-    """Model used to creat the Job sent by the client."""
+    """Model used to create the Job sent by the client."""
     source: str = Field(..., description="Source of the data.")
     destination: str = Field(...,min_length=1 ,description="Destination table of the database.")
     batch_size: int = Field(
