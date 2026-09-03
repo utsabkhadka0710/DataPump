@@ -8,6 +8,7 @@ from .models import (
     JobUpdate,
     JobResponse
 )
+from uuid import UUID
 
 
 class FakeDb():
@@ -69,7 +70,7 @@ async def get_all_job():
     return fake_db.get_job()
     
 @app.get("/jobs/{id}")
-async def get_job(id):
+async def get_job(id: UUID):
     return fake_db.get_job(id=id)
 
 @app.post("/jobs")
