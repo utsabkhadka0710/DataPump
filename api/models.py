@@ -53,6 +53,6 @@ class JobResponse(BaseModel):
     error_message: Optional[str] = None
     
     created_at: datetime = Field(default_factory=datetime.now)
-    updated_at: datetime|None = Field(default_factory=datetime.now)
+    updated_at: Optional[datetime] = Field(default_factory=datetime.now)
     completed_at: Optional[datetime] = None
     
