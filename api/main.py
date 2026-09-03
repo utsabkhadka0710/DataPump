@@ -37,8 +37,7 @@ class FakeDb():
             }
         )
         
-        # return self.items.get(f"{int(stored_job.id)}")
-        return self.items
+        return self.items.get(f"job {str(stored_job.id)}")
         
     
     def get_job(self,id=None):
