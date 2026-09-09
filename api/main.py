@@ -78,7 +78,13 @@ async def get_all_job():
     
 @app.get("/jobs/{id}")
 async def get_job(id: UUID):
-    return fake_db.get_job(id=id)
+    job = fake_db.get_job(id=id)
+    if job:
+        return job
+    raise HTTPException(
+        status_code=404,
+        detail=f"Job with id '{id}' doesn't exist!"
+    )
 
 @app.post("/jobs")
 async def post_job(job: JobCreate):
