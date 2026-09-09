@@ -61,7 +61,7 @@ async def api_health_check():
 @app.get("/")
 async def home():
     return {
-        "message": "Welcom to the home of the DataDump!",
+        "message": "Welcome to the home of the DataDump!",
         "descrition": "This is an ongoing project that takes and processes the CSV file"
         }
 
