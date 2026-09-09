@@ -1,7 +1,6 @@
 from uuid import uuid4
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from .models import (
     JobStatus,
