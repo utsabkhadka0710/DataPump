@@ -76,11 +76,3 @@ async def get_job(id: UUID):
 @app.post("/jobs")
 async def post_job(job: JobCreate):
     return fake_db.create_job(job)
-
-@app.put("/jobs/{id}")
-async def put_job():
-    return {"message":"the job put section is still under construction"}
-
-@app.patch("/jobs/{id}")
-async def patch_job():
-    return {"message":"the job patch section is still under construction"}
