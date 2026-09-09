@@ -1,6 +1,7 @@
 from uuid import uuid4
 from datetime import datetime
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from .models import (
     JobStatus,
@@ -67,7 +68,16 @@ async def home():
 
 @app.get("/jobs")
 async def get_all_job():
-    return fake_db.get_job()
+    job = fake_db.get_job()
+    if job:
+        return JSONResponse(
+            content = job,
+            status_code = 200
+        )
+    raise HTTPException(
+        status_code=404,
+        detail="Jobs not found, looks like no jobs were created!"
+    )
     
 @app.get("/jobs/{id}")
 async def get_job(id: UUID):
