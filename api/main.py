@@ -18,7 +18,7 @@ class FakeDb():
     
     def create_job(self,job: JobCreate):
         stored_job = JobResponse(
-            id = uuid4(),
+            id = str(uuid4()),
             source = job.source,
             destination = job.destination,
             batch_size= job.batch_size,
@@ -35,7 +35,7 @@ class FakeDb():
         
         self.items.update(
             {
-                f"job {str(stored_job.id)}" : stored_job
+                f"job {str(stored_job.id)}" : stored_job.model_dump()
             }
         )
         
@@ -70,10 +70,7 @@ async def home():
 async def get_all_job():
     job = fake_db.get_job()
     if job:
-        return JSONResponse(
-            content = job,
-            status_code = 200
-        )
+        return job
     raise HTTPException(
         status_code=404,
         detail="Jobs not found, looks like no jobs were created!"
