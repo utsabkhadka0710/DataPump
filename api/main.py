@@ -5,7 +5,6 @@ from pydantic import BaseModel
 from .models import (
     JobStatus,
     JobCreate,
-    JobUpdate,
     JobResponse
 )
 from uuid import UUID
