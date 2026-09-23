@@ -60,7 +60,7 @@ async def api_health_check():
 async def home():
     return {
         "message": "Welcome to the home of the DataDump!",
-        "descrition": "This is an ongoing project that takes and processes the CSV file"
+        "description": "This is an ongoing project that takes and processes the CSV file"
         }
 
 
