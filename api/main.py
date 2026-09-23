@@ -1,5 +1,5 @@
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from .models import (
@@ -27,7 +27,7 @@ class FakeDb():
             total_records= 0,
             error_message= None,
                 
-            created_at = datetime.now(),
+            created_at = datetime.now(timezone.utc),
             updated_at = None,
             completed_at  = None
         )
