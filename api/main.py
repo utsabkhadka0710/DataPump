@@ -51,13 +51,13 @@ fake_db = FakeDb()
 app = FastAPI()
 
 @app.get("/health")
-async def api_health_check():
+async def api_health_check() -> dict:
     return {
         "message": "This is an API health checkpoint, and if you're seeing this message it means that the API is healthy and working properly."
     }
 
 @app.get("/")
-async def home():
+async def home() -> dict:
     return {
         "message": "Welcome to the home of the DataDump!",
         "description": "This is an ongoing project that takes and processes the CSV file"
@@ -65,7 +65,7 @@ async def home():
 
 
 @app.get("/jobs")
-async def get_all_job():
+async def get_all_job() -> dict | dict[str, JobResponse]:
     job = fake_db.get_job()
     if job:
         return job
@@ -75,7 +75,7 @@ async def get_all_job():
     )
     
 @app.get("/jobs/{id}")
-async def get_job(id: UUID):
+async def get_job(id: UUID) -> dict | dict[str, JobResponse]:
     job = fake_db.get_job(id=id)
     if job:
         return job
@@ -85,5 +85,5 @@ async def get_job(id: UUID):
     )
 
 @app.post("/jobs")
-async def post_job(job: JobCreate):
+async def post_job(job: JobCreate) -> JobResponse:
     return fake_db.create_job(job)
