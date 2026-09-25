@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel, Field
 
 
@@ -52,7 +52,7 @@ class JobResponse(BaseModel):
     total_records: int = 0
     error_message: Optional[str] = None
     
-    created_at: datetime = Field(default_factory=datetime.now)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     
