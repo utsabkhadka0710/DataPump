@@ -8,17 +8,19 @@ The core idea is a service that takes in data (starting with CSV, eventually JSO
 
 ## Current status
 
-What exists today is the **job lifecycle API** — the part of the system responsible for creating, tracking, and updating data-processing jobs. There is no actual CSV/data processing pipeline yet, and no persistent database; jobs are currently stored in an in-memory dict as a stand-in.
+What exists today is the **job tracking API** — the part of the system responsible for creating and looking up data-processing jobs. There is no actual CSV/data processing pipeline yet, and no persistent database; jobs are currently stored in memory via a small `FakeDb` class as a stand-in.
 
 Working:
+- Health check and root endpoints
 - Create a job with a source, destination, and batch size
-- Fetch a job's current status
-- Update a job's status/progress (as a background worker would)
+- List all jobs
+- Fetch a single job by ID
 
 Not yet built:
+- Updating a job's status/progress (a `JobUpdate` schema already exists in `models.py` but isn't wired to any endpoint yet — no `PATCH` route currently)
 - Actual reading/parsing of CSV or JSON data
 - The "pump" step — whatever transformation/processing turns raw input into something useful
-- A real database layer (Postgres, SQLite, etc. — currently just an in-memory dict)
+- A real database layer (Postgres, SQLite, etc. — currently just an in-memory `dict` inside `FakeDb`)
 - A background worker that actually runs jobs
 - Auth, config management, tests
 
@@ -34,7 +36,7 @@ Not yet built:
 ```
 DataPump/
 ├── api/
-│   ├── main.py         # FastAPI app + job endpoints
+│   ├── main.py          # FastAPI app, FakeDb store, and job endpoints
 │   ├── models.py        # Pydantic schemas (JobCreate, JobUpdate, JobResponse, JobStatus)
 │   └── __init__.py      # Re-exports schemas from models.py
 ├── app/                 # Reserved for application/business logic (empty for now)
@@ -43,7 +45,9 @@ DataPump/
 └── README.md
 ```
 
-> Note: `api/main.py` currently redefines the same schemas found in `api/models.py` instead of importing them. This is a known duplication to clean up as the project settles.
+### `FakeDb`
+
+Jobs are currently held in memory by a small `FakeDb` class in `main.py` (a dict under the hood, keyed by `"job {id}"`). It exists purely as a placeholder until a real database layer is built under `database/`.
 
 ## The Job model
 
@@ -65,9 +69,13 @@ A `Job` represents one unit of work: take data from a `source`, process it in ba
 
 | Method | Endpoint | Description |
 |---|---|---|
+| `GET` | `/` | Welcome message / project description |
+| `GET` | `/health` | Health check |
 | `POST` | `/jobs` | Create a new job |
-| `GET` | `/jobs/{job_id}` | Get a job's current status |
-| `PATCH` | `/jobs/{job_id}` | Update a job's status/progress (used by a worker) |
+| `GET` | `/jobs` | List all jobs |
+| `GET` | `/jobs/{id}` | Get a single job by ID |
+
+There's no `PATCH /jobs/{id}` yet, so job status/progress can't be updated through the API — jobs are created as `pending` and stay that way until the worker/update logic is built.
 
 ## Getting started
 
@@ -101,8 +109,8 @@ curl -X POST http://127.0.0.1:8000/jobs \
 
 Roughly the order things are expected to get built, though this may shift:
 
-- [ ] Move shared schemas into `api/models.py` only, drop the duplication in `main.py`
-- [ ] Add a real persistence layer under `database/` (likely SQLite/Postgres via SQLAlchemy or SQLModel)
+- [ ] Wire up `JobUpdate` to a `PATCH /jobs/{id}` endpoint so job status/progress can actually change
+- [ ] Add a real persistence layer under `database/` (likely SQLite/Postgres via SQLAlchemy or SQLModel), replacing `FakeDb`
 - [ ] Add CSV ingestion + parsing
 - [ ] Define what "pumping" actually means — cleaning, validation, transformation, feature extraction for ML, etc.
 - [ ] Add a background worker (FastAPI `BackgroundTasks` or a proper queue like Celery/RQ) to actually execute jobs instead of only tracking their state
