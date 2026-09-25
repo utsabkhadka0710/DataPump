@@ -70,7 +70,7 @@ async def get_all_job() -> dict | dict[str, JobResponse]:
     if job:
         return job
     raise HTTPException(
-        status_code=404,
+        status_code=200,
         detail="Jobs not found, looks like no jobs were created!"
     )
     
