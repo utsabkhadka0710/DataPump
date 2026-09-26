@@ -29,6 +29,8 @@ Not yet built:
 - **FastAPI** — web framework / API layer
 - **Pydantic** — data validation and schemas
 - **Uvicorn** — ASGI server
+- **PostgreSQL** — persistence layer (planned)
+- **psycopg** — raw SQL, no ORM
 - **Python 3.11+** (uses `X | None` type syntax)
 
 ## Project structure
@@ -47,7 +49,11 @@ DataPump/
 
 ### `FakeDb`
 
-Jobs are currently held in memory by a small `FakeDb` class in `main.py` (a dict under the hood, keyed by `"job {id}"`). It exists purely as a placeholder until a real database layer is built under `database/`.
+Jobs are currently held in memory by a small `FakeDb` class in `main.py` (a dict under the hood, keyed by `"job {id}"`). It exists purely as a placeholder until the real database layer is built under `database/`.
+
+### Database plan
+
+Persistence will be **PostgreSQL**, accessed via **psycopg** with raw SQL — no ORM (no SQLAlchemy/SQLModel). `database/` will hold the connection setup and SQL queries directly rather than model classes that generate SQL.
 
 ## The Job model
 
@@ -91,6 +97,8 @@ pip install -e .
 fastapi dev api/main.py
 ```
 
+> A running PostgreSQL instance and connection details will be required once the database layer lands — details TBD as that gets built.
+
 Once running, interactive docs are available at `http://127.0.0.1:8000/docs`.
 
 ### Example: create a job
@@ -110,7 +118,7 @@ curl -X POST http://127.0.0.1:8000/jobs \
 Roughly the order things are expected to get built, though this may shift:
 
 - [ ] Wire up `JobUpdate` to a `PATCH /jobs/{id}` endpoint so job status/progress can actually change
-- [ ] Add a real persistence layer under `database/` (likely SQLite/Postgres via SQLAlchemy or SQLModel), replacing `FakeDb`
+- [ ] Add a PostgreSQL persistence layer under `database/` using psycopg + raw SQL (no ORM), replacing `FakeDb`
 - [ ] Add CSV ingestion + parsing
 - [ ] Define what "pumping" actually means — cleaning, validation, transformation, feature extraction for ML, etc.
 - [ ] Add a background worker (FastAPI `BackgroundTasks` or a proper queue like Celery/RQ) to actually execute jobs instead of only tracking their state
