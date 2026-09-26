@@ -64,12 +64,12 @@ async def home() -> dict:
 
 
 @app.get("/jobs")
-async def get_all_jobs() -> dict | dict[str, JobResponse]:
+async def get_all_jobs() -> dict | dict[str, dict]:
     return fake_db.get_job()
 
     
 @app.get("/jobs/{id}")
-async def get_job(id: UUID) -> dict | dict[str, JobResponse]:
+async def get_job(id: UUID) -> dict | dict[str, dict]:
     job = fake_db.get_job(id=id)
     if job:
         return job
