@@ -68,7 +68,12 @@ async def get_all_jobs() -> dict | dict[str, dict]:
     return fake_db.get_job()
 
     
-@app.get("/jobs/{id}")
+@app.get(
+        "/jobs/{id}",
+        responses={
+            404:{"description":"Job with specific id doesn't exist."}
+        }
+        )
 async def get_job(id: UUID) -> dict | dict[str, dict]:
     job = fake_db.get_job(id=id)
     if job:
