@@ -65,13 +65,8 @@ async def home() -> dict:
 
 @app.get("/jobs")
 async def get_all_jobs() -> dict | dict[str, JobResponse]:
-    job = fake_db.get_job()
-    if job:
-        return job
-    raise HTTPException(
-        status_code=200,
-        detail="Jobs not found, looks like no jobs were created!"
-    )
+    return fake_db.get_job()
+
     
 @app.get("/jobs/{id}")
 async def get_job(id: UUID) -> dict | dict[str, JobResponse]:
