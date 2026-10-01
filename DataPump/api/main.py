@@ -1,0 +1,88 @@
+from uuid import uuid4
+from datetime import datetime, timezone
+from fastapi import FastAPI, HTTPException, status
+from .models import (
+    JobStatus,
+    JobCreate,
+    JobResponse
+)
+from uuid import UUID
+
+
+class FakeDb():
+    def __init__(self):
+        self.items : dict = {}
+    
+    def create_job(self, job: JobCreate):
+        stored_job = JobResponse(
+            id = str(uuid4()),
+            source = job.source,
+            destination = job.destination,
+            batch_size = job.batch_size,
+                
+            status = JobStatus.PENDING,
+            processed_records = 0,
+            total_records = 0,
+            error_message = None,
+                
+            created_at = datetime.now(timezone.utc),
+            updated_at = None,
+            completed_at = None
+        )
+        
+        self.items.update(
+            {
+                f"job {str(stored_job.id)}" : stored_job.model_dump()
+            }
+        )
+        
+        return self.items.get(f"job {str(stored_job.id)}")
+        
+    
+    def get_job(self, id=None):
+        if id is None:
+            return self.items
+        return self.items.get(f"job {id}")
+
+fake_db = FakeDb()   
+    
+# fastapi app declaration
+app = FastAPI()
+
+@app.get("/health")
+async def api_health_check() -> dict:
+    return {
+        "message": "This is an API health checkpoint, and if you're seeing this message it means that the API is healthy and working properly."
+    }
+
+@app.get("/")
+async def home() -> dict:
+    return {
+        "message": "Welcome to the home of the DataDump!",
+        "description": "This is an ongoing project that takes and processes the CSV file."
+        }
+
+
+@app.get("/jobs")
+async def get_all_jobs() -> dict | dict[str, dict]:
+    return fake_db.get_job()
+
+    
+@app.get(
+        "/jobs/{id}",
+        responses={
+            404:{"description":"Job with specific id doesn't exist."}
+        }
+        )
+async def get_job(id: UUID) -> dict | dict[str, dict]:
+    job = fake_db.get_job(id=id)
+    if job:
+        return job
+    raise HTTPException(
+        status_code=404,
+        detail=f"Job with id '{id}' doesn't exist!"
+    )
+
+@app.post("/jobs")
+async def post_job(job: JobCreate):
+    return fake_db.create_job(job)
