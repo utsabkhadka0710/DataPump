@@ -7,12 +7,16 @@ name = 'DataPump'
 version = '0.1.0'
 description = "An Data Dump project that processes CSV files."
 readme = 'README.md'
-license = {text='MIT'}
+requires-python = ">=3.11"
+license = "MIT"
 
 dependencies = [
     'fastapi[standard]',
     'uvicorn[standard]',
     'pydantic',
     'psycopg',
-    'psycopg_pool',
+    'psycopg-pool',
 ]
+
+[tool.setuptools.packages.find]
+include = ['DataPump']
