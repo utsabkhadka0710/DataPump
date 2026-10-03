@@ -29,7 +29,7 @@ class JobCreate(BaseModel):
     )
     @field_validator('source', 'destination', mode='before')
     @classmethod
-    def validate_destination(cls, v: str, info: ValidationInfo) -> str:
+    def validate_non_whitespace(cls, v: str, info: ValidationInfo) -> str:
         if v and not bool(v.strip()):
             field_name = info.field_name
             raise ValueError(f"{field_name} cannot be empty or whitspace only!")
