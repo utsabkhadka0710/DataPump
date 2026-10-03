@@ -32,5 +32,5 @@ async def conn_pool_lifespan(app: FastAPI):
     print("Database connection pool established sucessfully")
     yield
     print("Database connection pool closing...")
-    await db_pool.close
+    await db_pool.close()
     print("Database connection pool closed sucessfully")
