@@ -1,26 +1,26 @@
 # DataPump
 
-DataPump is a learning project built to get hands-on with **FastAPI** by building something close to a real-world backend service: a data processing job API.
+DataPump is a data ingestion pipeline: a service that takes in data (starting with CSV, eventually JSON and other formats), processes/transforms it, and lands it somewhere useful — a PostgreSQL database, a cleaned dataset, or an input ready for an ML model. It's built with **FastAPI** on top of **PostgreSQL** (via raw SQL, no ORM).
 
-The core idea is a service that takes in data (starting with CSV, eventually JSON and other formats), "pumps" it through some transformation/processing pipeline, and lands it somewhere useful — a database table, a cleaned dataset, or an input ready for an ML model. The exact shape of the pumping/transformation logic is still being figured out; right now the project focuses on getting the job-management API right first.
+This isn't meant to be production-grade, but it's a real, working project rather than a disposable exercise — something built with care, meant to actually work end-to-end and be worth showing. The exact shape of the "pump" (transformation/processing) step is still being worked out; right now the focus is on getting the foundations (API skeleton, database connectivity, job tracking) solid first.
 
-> This is a work-in-progress, built for learning purposes. Expect things to change quickly and roughly as the design evolves.
+> This is a work-in-progress. Expect things to change as the design evolves.
 
 ## Current status
 
-What exists today is the **job tracking API** — the part of the system responsible for creating and looking up data-processing jobs. There is no actual CSV/data processing pipeline yet, and no persistent database; jobs are currently stored in memory via a small `FakeDb` class as a stand-in.
+The project just moved from an in-memory placeholder store to real **PostgreSQL** connectivity. As part of that shift, the job endpoints that existed earlier (create/list/get jobs backed by an in-memory `FakeDb`) have been pulled out for now while the database layer is built properly — so right now the API itself is minimal.
 
 Working:
-- Health check and root endpoints
-- Create a job with a source, destination, and batch size
-- List all jobs
-- Fetch a single job by ID
+- FastAPI app with a lifespan hook that opens/closes an async PostgreSQL connection pool on startup/shutdown
+- `/health` and `/` endpoints
+- `/check-db-conn` endpoint to verify the API can actually reach the database
+- Pydantic schemas for jobs (`JobCreate`, `JobUpdate`, `JobResponse`, `JobStatus`) defined in `api/models.py`, ready to be wired up once the DB layer is in place
 
 Not yet built:
-- Updating a job's status/progress (a `JobUpdate` schema already exists in `models.py` but isn't wired to any endpoint yet — no `PATCH` route currently)
+- Any job endpoints (`POST`/`GET`/`PATCH /jobs`) — removed along with `FakeDb`, to be reintroduced backed by real SQL
 - Actual reading/parsing of CSV or JSON data
 - The "pump" step — whatever transformation/processing turns raw input into something useful
-- A real database layer (Postgres, SQLite, etc. — currently just an in-memory `dict` inside `FakeDb`)
+- SQL queries/table schema for jobs (connection pool exists, but nothing queries real tables yet)
 - A background worker that actually runs jobs
 - Auth, config management, tests
 
@@ -29,8 +29,9 @@ Not yet built:
 - **FastAPI** — web framework / API layer
 - **Pydantic** — data validation and schemas
 - **Uvicorn** — ASGI server
-- **PostgreSQL** — persistence layer (planned)
-- **psycopg** — raw SQL, no ORM
+- **PostgreSQL** — persistence layer
+- **psycopg** (async) + **psycopg-pool** — raw SQL, no ORM
+- **python-dotenv** — loads DB credentials from `.env`
 - **Python 3.11+** (uses `X | None` type syntax)
 
 ## Project structure
@@ -38,26 +39,42 @@ Not yet built:
 ```
 DataPump/
 ├── api/
-│   ├── main.py          # FastAPI app, FakeDb store, and job endpoints
-│   ├── models.py        # Pydantic schemas (JobCreate, JobUpdate, JobResponse, JobStatus)
-│   └── __init__.py      # Re-exports schemas from models.py
-├── app/                 # Reserved for application/business logic (empty for now)
-├── database/            # Reserved for the real database layer (empty for now)
+│   ├── main.py                  # FastAPI app, lifespan, health/db-check endpoints
+│   ├── models.py                # Pydantic schemas (JobCreate, JobUpdate, JobResponse, JobStatus)
+│   └── __init__.py              # Re-exports schemas from models.py
+├── datapump/
+│   ├── database/
+│   │   └── connection.py        # Async PostgreSQL connection pool (psycopg + psycopg-pool)
+│   ├── app/                     # Reserved for application/business logic (empty for now)
+│   └── __init__.py              # Re-exports db_pool, conn_pool_lifespan
+├── .env.example                 # Template for required DB env vars
 ├── pyproject.toml
 └── README.md
 ```
 
-### `FakeDb`
+### Database connection
 
-Jobs are currently held in memory by a small `FakeDb` class in `main.py` (a dict under the hood, keyed by `"job {id}"`). It exists purely as a placeholder until the real database layer is built under `database/`.
+`datapump/database/connection.py` sets up an `AsyncConnectionPool` (from `psycopg_pool`) using credentials read from environment variables via `python-dotenv`, with rows returned as dicts (`dict_row`). The pool is opened on app startup and closed on shutdown via a FastAPI `lifespan` context manager (`conn_pool_lifespan`), so the pool's lifetime is tied to the app's.
 
-### Database plan
+Persistence is plain **PostgreSQL via psycopg, raw SQL, no ORM** — no SQLAlchemy/SQLModel. Queries will be written by hand as the job endpoints get rebuilt on top of this.
 
-Persistence will be **PostgreSQL**, accessed via **psycopg** with raw SQL — no ORM (no SQLAlchemy/SQLModel). `database/` will hold the connection setup and SQL queries directly rather than model classes that generate SQL.
+## Environment setup
 
-## The Job model
+Copy `.env.example` to `.env` and fill in your local Postgres credentials:
 
-A `Job` represents one unit of work: take data from a `source`, process it in batches, and send it to a `destination`.
+```
+DB_HOST=
+DB_PORT=
+DB_NAME=
+DB_USER=
+DB_PASSWORD=
+```
+
+A running PostgreSQL instance is required to start the app, since the connection pool opens on startup.
+
+## The Job model (schemas, not yet wired to endpoints)
+
+Defined in `api/models.py`, representing one unit of work: take data from a `source`, process it in batches, and send it to a `destination`. Not yet connected to any endpoint or table.
 
 | Field | Type | Description |
 |---|---|---|
@@ -77,11 +94,9 @@ A `Job` represents one unit of work: take data from a `source`, process it in ba
 |---|---|---|
 | `GET` | `/` | Welcome message / project description |
 | `GET` | `/health` | Health check |
-| `POST` | `/jobs` | Create a new job |
-| `GET` | `/jobs` | List all jobs |
-| `GET` | `/jobs/{id}` | Get a single job by ID |
+| `GET` | `/check-db-conn` | Confirms the API can reach the PostgreSQL database |
 
-There's no `PATCH /jobs/{id}` yet, so job status/progress can't be updated through the API — jobs are created as `pending` and stay that way until the worker/update logic is built.
+Job endpoints (`/jobs`) are not currently present — they'll come back once they're backed by real SQL against Postgres.
 
 ## Getting started
 
@@ -93,42 +108,32 @@ cd DataPump
 # install dependencies
 pip install -e .
 
-# run the API
+# set up environment variables
+cp .env.example .env
+# then fill in DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
+
+# run the API (requires Postgres running and reachable)
 fastapi dev api/main.py
 ```
 
-> A running PostgreSQL instance and connection details will be required once the database layer lands — details TBD as that gets built.
-
 Once running, interactive docs are available at `http://127.0.0.1:8000/docs`.
-
-### Example: create a job
-
-```bash
-curl -X POST http://127.0.0.1:8000/jobs \
-  -H "Content-Type: application/json" \
-  -d '{
-    "source": "data/input.csv",
-    "destination": "processed_records",
-    "batch_size": 500
-  }'
-```
 
 ## Roadmap
 
 Roughly the order things are expected to get built, though this may shift:
 
+- [ ] Design the `jobs` table schema in Postgres
+- [ ] Rebuild `POST /jobs`, `GET /jobs`, `GET /jobs/{id}` on top of raw SQL via psycopg (replacing the old `FakeDb`-backed versions)
 - [ ] Wire up `JobUpdate` to a `PATCH /jobs/{id}` endpoint so job status/progress can actually change
-- [ ] Add a PostgreSQL persistence layer under `database/` using psycopg + raw SQL (no ORM), replacing `FakeDb`
 - [ ] Add CSV ingestion + parsing
 - [ ] Define what "pumping" actually means — cleaning, validation, transformation, feature extraction for ML, etc.
 - [ ] Add a background worker (FastAPI `BackgroundTasks` or a proper queue like Celery/RQ) to actually execute jobs instead of only tracking their state
 - [ ] JSON ingestion support
 - [ ] Basic tests (pytest)
-- [ ] Config/env handling
 
 ## Why this project exists
 
-This is primarily a sandbox for learning FastAPI patterns — request/response models with Pydantic, status codes, path/body validation, and structuring a project that can grow into something with real background processing and a real database. The "data pump" concept is the excuse to build something with enough moving parts (jobs, state, background work, data formats) to make the FastAPI learning meaningful rather than a toy CRUD app.
+DataPump exists to be a real, working data ingestion pipeline: take raw files in, process them, and get something usable out the other end — reliably, and in a way that's actually worth putting in front of other people. It's not aimed at production scale, but it's being built properly: a real API, real async PostgreSQL access with raw SQL, real job tracking, and (eventually) real background processing — not a disposable toy project.
 
 ## License
 
