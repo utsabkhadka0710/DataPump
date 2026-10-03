@@ -4,7 +4,7 @@ from enum import Enum
 from uuid import UUID, uuid4
 
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ValidationInfo
 
 
 class JobStatus(str, Enum):
@@ -27,11 +27,12 @@ class JobCreate(BaseModel):
         le=10000,
         description="Number of records to process per batch."
     )
-    @field_validator('destination', mode='before')
+    @field_validator('source', 'destination', mode='before')
     @classmethod
-    def validate_destination(cls, v: str) -> str:
+    def validate_destination(cls, v: str, info: ValidationInfo) -> str:
         if v and not bool(v.strip()):
-            raise ValueError("Destination cannot be empty or whitspace only!")
+            field_name = info.field_name
+            raise ValueError(f"{field_name} cannot be empty or whitspace only!")
         return v
 
 
