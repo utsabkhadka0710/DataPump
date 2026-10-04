@@ -1,8 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from psycopg import AsyncConnection
 from collections.abc import AsyncGenerator
 
-from datapump import db_pool, conn_pool_lifespan
+from datapump import db_pool, conn_pool_lifespan, post_job_handler
+from .models import JobCreate, JobResponse
 
 
 
@@ -30,3 +31,11 @@ async def check_db_conn():
     async with db_pool.connection() as conn:
         data = await conn.execute("SELECT 'DB connection okay!' as response")
         return await data.fetchone()
+
+@app.post(
+        "/jobs",
+        response_model=JobResponse,
+        description="endpoint to create/post job"
+        )
+async def post_jobs(job: JobCreate, conn: AsyncConnection=Depends(get_db_conn)):
+    return await post_job_handler(conn, job)
