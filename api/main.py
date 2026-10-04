@@ -8,7 +8,7 @@ from datapump import db_pool, conn_pool_lifespan
 
 app = FastAPI(lifespan=conn_pool_lifespan)
 
-async def get_db() -> AsyncGenerator[AsyncConnection]:
+async def get_db_conn() -> AsyncGenerator[AsyncConnection]:
     async with db_pool.connection() as conn:
         yield conn
 
@@ -30,4 +30,3 @@ async def check_db_conn():
     async with db_pool.connection() as conn:
         data = await conn.execute("SELECT 'DB connection okay!' as response")
         return await data.fetchone()
-
