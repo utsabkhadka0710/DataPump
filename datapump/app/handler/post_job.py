@@ -1,5 +1,4 @@
 from psycopg import AsyncConnection
-from psycopg_pool import AsyncConnectionPool
 
 from api import JobCreate, JobResponse
 
