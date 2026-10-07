@@ -18,22 +18,20 @@ class JobStatus(str, Enum):
 class JobCreate(BaseModel):
     """Model used to create the Job sent by the client."""
     source: str = Field(description="Source of the data.")
-    destination: str = Field(
-        min_length=1, description="Destination table of the database."
-    )
+    destination: str = Field(description="Destination table of the database.")
     batch_size: int = Field(
         default=1000,
         gt=0,
         le=10000,
         description="Number of records to process per batch."
     )
-    @field_validator('source', 'destination', mode='before')
+    @field_validator('source', 'destination', mode='after')
     @classmethod
     def validate_non_whitespace(cls, v: str, info: ValidationInfo) -> str:
-        if v and not bool(v.strip()):
-            field_name = info.field_name
-            raise ValueError(f"{field_name} cannot be empty or whitspace only!")
-        return v
+        field_name = info.field_name.capitalize()
+        if not v.strip():
+            raise ValueError(f"{field_name} cannot be empty or whitespaces.")
+        return v.strip()
 
 
 

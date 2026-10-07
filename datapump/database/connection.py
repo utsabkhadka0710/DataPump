@@ -21,6 +21,7 @@ db_pool = AsyncConnectionPool(
     conninfo=conn_info,
     min_size=1,
     max_size=10,
+    timeout=5,
     open=False,
     kwargs={"row_factory":dict_row}
 )
