@@ -1,9 +1,38 @@
 from .database.connection import conn_pool_lifespan, db_pool
 
-from .app.handler.post_job import post_job_handler
+from .exceptions.db_exceptions import(
+    DatabaseError,
+    DatabaseConnectionPoolTimeout,
+    DatabaseConnectionPoolClosed,
+    DatabaseDataError,
+    DatabaseIntegrityError,
+    DatabaseProgrammingError,
+    DatabaseUnexpectedError
+)
 
 __all__ = [
     'db_pool',
     'conn_pool_lifespan',
-    'post_job_handler'
+    'DatabaseError',
+    'DatabaseConnectionPoolTimeout',
+    'DatabaseConnectionPoolClosed',
+    'DatabaseDataError',
+    'DatabaseIntegrityError',
+    'DatabaseProgrammingError',
+    'DatabaseUnexpectedError'
+]
+
+db_connection = [
+    'db_pool',
+    'conn_pool_lifespan'
+]
+
+__exceptions__ = [
+    'DatabaseError',
+    'DatabaseConnectionPoolTimeout',
+    'DatabaseConnectionPoolClosed',
+    'DatabaseDataError',
+    'DatabaseIntegrityError',
+    'DatabaseProgrammingError',
+    'DatabaseUnexpectedError'
 ]
