@@ -40,8 +40,10 @@ async def post_job_handler(pool_conn: AsyncConnection, job: JobCreate):
             message=f"Integrity violation on constraint '{e_constraint}': {e_detail}"
         )
     except ProgrammingError as e:
-        e_detail = getattr(e.diag, "message_detail", str(e))
-        raise DatabaseProgrammingError
+        e_message_primary = getattr(e.diag, "message_primary", str(e))
+        raise DatabaseProgrammingError(
+            message=f"Syntax error in SQL! Please take a proper look at your SQL query...: {e_message_primary}"
+        )
     except Error as e: # here Error -> psycopg.Error
         raise DatabaseUnexpectedError(
             message=f"Unexpected error occured in database! Please try again later...: {str(e)}"
