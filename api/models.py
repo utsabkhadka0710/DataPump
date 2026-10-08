@@ -19,12 +19,7 @@ class JobCreate(BaseModel):
     """Model used to create the Job sent by the client."""
     source: str = Field(description="Source of the data.")
     destination: str = Field(description="Destination table of the database.")
-    batch_size: int = Field(
-        default=1000,
-        gt=0,
-        le=10000,
-        description="Number of records to process per batch."
-    )
+    batch_size: int = Field(description="Number of records to process per batch.")
     @field_validator('source', 'destination', mode='after')
     @classmethod
     def validate_non_whitespace(cls, v: str, info: ValidationInfo) -> str:
@@ -34,7 +29,7 @@ class JobCreate(BaseModel):
         return v.strip()
 
 
-
+id
 class JobUpdate(BaseModel):
     """Model used internally by the worker to update the progress of Job in background."""
     status: JobStatus | None = Field(
@@ -53,18 +48,16 @@ class JobUpdate(BaseModel):
 
 class JobResponse(BaseModel):
     """Model returned to the client when job status is requested."""
-    id: UUID = Field(
-        default_factory=uuid4, description="Unique Job ID."
-    )
+    id: UUID
     source: str
     destination: str
     batch_size: int
 
-    status: JobStatus = JobStatus.PENDING
-    processed_records: int = 0
-    total_records: int = 0
-    error_message: str | None = None
+    status: JobStatus
+    processed_records: int
+    total_records: int
+    error_message: str
 
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime | None = None
-    completed_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime
