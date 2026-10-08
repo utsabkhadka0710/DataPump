@@ -56,8 +56,8 @@ class JobResponse(BaseModel):
     status: JobStatus
     processed_records: int
     total_records: int
-    error_message: str
+    error_message: str | None
 
     created_at: datetime
-    updated_at: datetime
-    completed_at: datetime
+    updated_at: datetime | None
+    completed_at: datetime | None
