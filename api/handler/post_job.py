@@ -13,7 +13,7 @@ from datapump import (
 
 async def post_job_handler(pool_conn: AsyncConnection, job: JobCreate):
     job_source = job.source
-    destinaion = job.destination
+    destination = job.destination
     batch_size = job.batch_size
     try:
         async with pool_conn.cursor() as cur:
@@ -24,7 +24,7 @@ async def post_job_handler(pool_conn: AsyncConnection, job: JobCreate):
                 "RETURNING id, job_source as source, destination, " 
                 "batch_size, status, total_records, processed_records, "
                 "error_message, created_at,updated_at,completed_at;",
-                (job_source, destinaion, batch_size)
+                (job_source, destination, batch_size)
             )
             return await data.fetchone()
     except DataError as e:
