@@ -35,9 +35,9 @@ async def post_job_handler(pool_conn: AsyncConnection, job: JobCreate):
         )
     except IntegrityError as e:
         e_constraint = getattr(e.diag, "constraint_name", "unknown")
-        e_detail = getattr(e.diag, "message_detail", str(e))
+        e_message_primary = getattr(e.diag, "message_primary", str(e))
         raise DatabaseIntegrityError(
-            message=f"Integrity violation on constraint '{e_constraint}': {e_detail}"
+            message=f"Integrity violation on constraint '{e_constraint}': {e_message_primary}"
         )
     except ProgrammingError as e:
         e_message_primary = getattr(e.diag, "message_primary", str(e))
