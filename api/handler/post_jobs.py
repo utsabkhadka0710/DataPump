@@ -11,7 +11,7 @@ from datapump import (
 )
 
 
-async def post_job_handler(pool_conn: AsyncConnection, job: JobCreate):
+async def post_jobs_handler(pool_conn: AsyncConnection, job: JobCreate):
     job_source = job.source
     destination = job.destination
     batch_size = job.batch_size

@@ -5,7 +5,7 @@ from psycopg_pool import PoolTimeout, PoolClosed
 
 from datapump import db_pool, conn_pool_lifespan, DatabaseConnectionPoolTimeout, DatabaseConnectionPoolClosed
 from .models import JobCreate, JobResponse
-from .handler.post_jobs import post_job_handler
+from .handler.post_jobs import post_jobs_handler
 from .exceptions import register_exceptions_handler
 
 
@@ -47,6 +47,6 @@ async def check_db_conn():
         description="endpoint to create/post job"
         )
 async def post_jobs(job_payload: JobCreate, conn: AsyncConnection=Depends(get_db_conn)) -> JobResponse:
-    data: dict = await post_job_handler(conn, job_payload)
+    data: dict = await post_jobs_handler(conn, job_payload)
     return JobResponse(**data)
-    
+
