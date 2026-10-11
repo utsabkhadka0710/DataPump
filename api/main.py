@@ -5,7 +5,7 @@ from psycopg_pool import PoolTimeout, PoolClosed
 
 from datapump import db_pool, conn_pool_lifespan, DatabaseConnectionPoolTimeout, DatabaseConnectionPoolClosed
 from .models import JobCreate, JobResponse
-from .handler.post_job import post_job_handler
+from .handler.post_jobs import post_job_handler
 from .exceptions import register_exceptions_handler
 
 
