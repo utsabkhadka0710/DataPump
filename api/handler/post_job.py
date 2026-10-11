@@ -18,7 +18,7 @@ async def post_job_handler(pool_conn: AsyncConnection, job: JobCreate):
     try:
         async with pool_conn.cursor() as cur:
             data = await cur.execute(
-                "INSERT INTO jobs (job_source, destination, batch_size)"
+                "INSERT INTO jobs (job_source, destination, batch_size) "
                 "VALUES"
                 "(%s, %s, %s)"
                 "RETURNING id, job_source as source, destination, " 
