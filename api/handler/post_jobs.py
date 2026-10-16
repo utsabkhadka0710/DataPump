@@ -12,7 +12,7 @@ from datapump import (
 
 
 async def post_jobs_handler(pool_conn: AsyncConnection, job: JobCreate):
-    job_source = job.source
+    job_source = job.job_source
     destination = job.destination
     batch_size = job.batch_size
     try:
@@ -21,7 +21,7 @@ async def post_jobs_handler(pool_conn: AsyncConnection, job: JobCreate):
                 "INSERT INTO jobs (job_source, destination, batch_size) "
                 "VALUES"
                 "(%s, %s, %s)"
-                "RETURNING id, job_source as source, destination, " 
+                "RETURNING id, job_source, destination, " 
                 "batch_size, status, total_records, processed_records, "
                 "error_message, created_at,updated_at,completed_at;",
                 (job_source, destination, batch_size)

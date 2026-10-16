@@ -17,7 +17,7 @@ class JobStatus(str, Enum):
 
 class JobCreate(BaseModel):
     """Model used to create the Job sent by the client."""
-    source: str = Field(description="Source of the data.")
+    job_source: str = Field(description="Source of the data.")
     destination: str = Field(description="Destination table of the database.")
     batch_size: int = Field(
         default=1000,
@@ -25,7 +25,7 @@ class JobCreate(BaseModel):
         le=10000,
         description="Number of records to process per batch."
     )
-    @field_validator('source', 'destination', mode='after')
+    @field_validator('job_source', 'destination', mode='after')
     @classmethod
     def validate_non_whitespace(cls, v: str, info: ValidationInfo) -> str:
         field_name = info.field_name.capitalize()
@@ -34,7 +34,6 @@ class JobCreate(BaseModel):
         return v.strip()
 
 
-id
 class JobUpdate(BaseModel):
     """Model used internally by the worker to update the progress of Job in background."""
     status: JobStatus | None = Field(
@@ -54,7 +53,7 @@ class JobUpdate(BaseModel):
 class JobResponse(BaseModel):
     """Model returned to the client when job status is requested."""
     id: UUID
-    source: str
+    job_source: str
     destination: str
     batch_size: int
 
