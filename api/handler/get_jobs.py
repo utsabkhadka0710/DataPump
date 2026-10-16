@@ -28,7 +28,11 @@ async def get_jobs_handler(pool_conn: AsyncConnection) -> list[dict]:
     async with pool_conn.cursor() as cur:
         try:
             data = await cur.execute(
-                "SELECT * FROM jobs;"
+                "SELECT "
+                "id, job_source, destination, batch_size, status, "
+                "total_records, processed_records, error_message, "
+                "created_at, updated_at, completed_at "
+                "FROM jobs;"
             )
             return await data.fetchall()
         except ProgrammingError as e:
