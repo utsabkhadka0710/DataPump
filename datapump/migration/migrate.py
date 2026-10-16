@@ -1,25 +1,29 @@
+"""Database migration script for DataPump.
+
+This script initializes the connection pool, creates the custom PostgreSQL
+`job_status` enum type, sets up the `jobs` table with rigorous integrity constraints,
+and creates necessary performance indexes before cleanly closing the connection pool.
+"""
+
 import asyncio
 
 from datapump import db_pool
 
 
-async def create_table():
+async def create_table() -> None:
+    """Executes database schema migrations to set up enums, tables, and indexes.
+
+    Opens the database connection pool, creates the `job_status` ENUM type if it
+    does not already exist, creates the `jobs` table with structural check
+    constraints, creates performance indexes, commits the transaction, and closes the pool.
+    """
     await db_pool.open()
     async with db_pool.connection() as conn:
         async with conn.cursor() as cur:
             print("Creating custom ENUM type...")
             await cur.execute(
                 """
-                DO $$ BEGIN 
-                    CREATE TYPE job_status AS ENUM(
-                        'pending',
-                        'processing',
-                        'completed',
-                        'failed'
-                    );
-                EXCEPTION
-                    WHEN duplicate_object THEN NULL;
-                END $$
+                DO $$ BEGIN CREATE TYPE job_status AS ENUM( 'pending', 'processing', 'completed', 'failed' ); EXCEPTION WHEN duplicate_object THEN NULL; END $$
                 """
             )
 
@@ -37,7 +41,7 @@ async def create_table():
                     error_message TEXT,
                     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMPTZ,
-                    completed_at TIMESTAMPTZ,						   
+                    completed_at TIMESTAMPTZ,                          
                     CONSTRAINT source_validation CHECK (length(trim(job_source))>0),
                     CONSTRAINT destination_validation CHECK (length(trim(destination))>0),
                     CONSTRAINT batch_size_validation CHECK (batch_size > 0 AND batch_size <= 10000),
@@ -66,7 +70,8 @@ async def create_table():
 
             await conn.commit()
             print("Migration completed sucessfully!")
-    await db_pool.close()  
+    await db_pool.close()
+
 
 if __name__ == "__main__":
     asyncio.run(create_table())

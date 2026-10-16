@@ -1,11 +1,31 @@
+"""Database seed data generation script for DataPump.
+
+This script opens the connection pool, prompts the user for the number of seed rows
+to generate, and executes an optimized SQL bulk-insertion query using PostgreSQL
+randomized expressions to populate the `jobs` table with realistic test data matching
+all table check constraints.
+"""
+
 import asyncio
+
 import psycopg
 
-from datapump import db_pool, DatabaseUnexpectedError
+from datapump import DatabaseUnexpectedError, db_pool
 
 
-async def plant_seeds_data():
-    seed_rows = int(input("Enter the no. of rows to plant the seed data: "))
+async def plant_seeds_data() -> None:
+    """Prompts for row count and bulk-inserts synthetic test job records into the database.
+
+    Opens the database connection pool, generates the requested number of randomized,
+    constraint-compliant job records using SQL `generate_series` and random array selections,
+    commits the transaction, and closes the connection pool.
+
+    Raises:
+        DatabaseUnexpectedError: If an unexpected database error occurs during seed data insertion.
+    """
+    seed_rows: int = int(
+        input("Enter the no. of rows to plant the seed data: ")
+    )
     await db_pool.open()
     async with db_pool.connection() as conn:
         async with conn.cursor() as cur:
@@ -71,7 +91,7 @@ async def plant_seeds_data():
                         CASE
                             WHEN status = 'completed' THEN (created_at+(random()*INTERVAL '45 days'))
                             ELSE NULL
-                        END	AS completed_at
+                        END AS completed_at
                     FROM (
                         -- Inner select
                         SELECT
@@ -96,8 +116,11 @@ async def plant_seeds_data():
                     message=f"Could not plant seed data. Unexpected error occured in database! Please try again...: {str(e)}"
                 )
             await conn.commit()
-            print(f"Sucessfully planted {seed_rows} no. of seed data into database!")
+            print(
+                f"Sucessfully planted {seed_rows} no. of seed data into database!"
+            )
     await db_pool.close()
+
 
 if __name__ == "__main__":
     asyncio.run(plant_seeds_data())
