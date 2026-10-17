@@ -32,7 +32,8 @@ async def get_jobs_handler(pool_conn: AsyncConnection) -> list[dict]:
                 "id, job_source, destination, batch_size, status, "
                 "total_records, processed_records, error_message, "
                 "created_at, updated_at, completed_at "
-                "FROM jobs;"
+                "FROM jobs "
+                "ORDER BY created_at, id ASC;"
             )
             return await data.fetchall()
         except ProgrammingError as e:
