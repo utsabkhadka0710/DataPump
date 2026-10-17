@@ -7,7 +7,8 @@ providers, and sets up API routing for health checks, system status, and job man
 
 from collections.abc import AsyncGenerator
 
-from fastapi import Depends, FastAPI
+from uuid import UUID
+from fastapi import Depends, FastAPI, HTTPException
 from psycopg import AsyncConnection
 from psycopg_pool import PoolClosed, PoolTimeout
 
@@ -19,7 +20,7 @@ from datapump import (
 )
 
 from .exceptions import register_exceptions_handler
-from .handler.get_jobs import get_jobs_handler
+from .handler.get_jobs import get_jobs_handler, get_job_by_id_handler
 from .handler.post_jobs import post_jobs_handler
 from .models import JobCreate, JobResponse
 
@@ -119,3 +120,41 @@ async def get_jobs(
         list[JobResponse]: A collection of job details and current execution statuses.
     """
     return await get_jobs_handler(conn)
+
+
+@app.get(
+    "/jobs/{id}",
+    response_model=JobResponse,
+    description="Endpoint to retrieve single job by ID",
+    responses={
+        404: {
+            "Description": "Job not found!"
+        }
+    }
+)
+async def get_job_by_id(
+    id: UUID,
+    conn: AsyncConnection = Depends(get_db_conn)
+) -> JobResponse:
+    """Retrieves a specific data ingestion job by its unique identifier.
+
+    Queries the database for a job matching the specified UUID. If no job
+    is found, raises an HTTP 404 Not Found exception.
+
+    Args:
+        id: The unique UUID of the job to retrieve.
+        conn: The active asynchronous database connection dependency.
+
+    Returns:
+        JobResponse: The detailed job record matching the requested ID.
+
+    Raises:
+        HTTPException: With status code 404 if the job does not exist in the database.
+    """
+    job = await get_job_by_id_handler(conn, id)
+    if job is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Job not found!"
+        )
+    return job
